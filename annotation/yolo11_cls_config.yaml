@@ -1,3 +1,5 @@
+# Ultralytics 🚀 AGPL-3.0 License - https://ultralytics.com/license
+
 # YOLO 11 Classification Training Configuration
 
 # Dataset paths
@@ -32,5 +34,4 @@ epochs: 50
 
 # Model architecture (update as needed for YOLO 11)
 model: yolo11x-cls.pt
-
 # Other hyperparameters can be added as needed
