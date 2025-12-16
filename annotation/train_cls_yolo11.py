@@ -86,14 +86,15 @@ class Yolo11ClassifierTrainer:
             epochs=self.epochs,
             imgsz=self.imgsz,
             batch=self.batch,
-          #  project=os.path.abspath(os.path.join(os.path.dirname(__file__), '../runs'))
+            fliplr=0.0
+            #  project=os.path.abspath(os.path.join(os.path.dirname(__file__), '../runs'))
         )
-    print("Training complete.")
-    # Evaluate the trained model on the test set
-    print("Evaluating on test set...")
-    test_results = model.val(data=self.split_dirs['test'])
-    print("Evaluation complete.")
-    print(test_results)
+        print("Training complete.")
+        # Evaluate the trained model on the test set
+        print("Evaluating on test set...")
+        test_results = model.val(data=self.split_dirs['test'])
+        print("Evaluation complete.")
+        print(test_results)
 
 
 if __name__ == '__main__':

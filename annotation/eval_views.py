@@ -18,8 +18,16 @@ class YoloViewClassifierEvaluator:
             print(f'  Processing category: {cat}')
             sub_dir = os.path.join(data_dir, cat)
             if not os.path.isdir(sub_dir):
-                print(f'Skipping missing subdirectory: {sub_dir}')
-                continue
+                # Try inserting 'images' before the last segment
+                parent = os.path.dirname(sub_dir)
+                last = os.path.basename(sub_dir)
+                alt_sub_dir = os.path.join(parent, 'images', last)
+                if os.path.isdir(alt_sub_dir):
+                    print(f"  Using alternative subdirectory: {alt_sub_dir}")
+                    sub_dir = alt_sub_dir
+                else:
+                    print(f'Skipping missing subdirectory: {sub_dir} and {alt_sub_dir}')
+                    continue
             images = [f for f in os.listdir(sub_dir)
                       if os.path.isfile(os.path.join(sub_dir, f)) and os.path.splitext(f)[1].lower() in self.image_exts]
             if not images:
@@ -52,12 +60,15 @@ class YoloViewClassifierEvaluator:
 
 
 if __name__ == '__main__':
-    MODEL_PATH = '/media/levin/DATA/checkpoints/Factory/ultralytics/runs/classify/train13/weights/best.pt'
+    MODEL_PATH = '/media/levin/DATA/checkpoints/Factory/ultralytics/runs/classify/train14/weights/best.pt'
     DATA_DIRS = [
         '/media/levin/DATA/checkpoints/controlnet/data/EOL/18.02.2025',
         '/media/levin/DATA/checkpoints/controlnet/data/EOL/20.02.2025',
         '/media/levin/DATA/checkpoints/controlnet/data/EOL/21.02.2025',
     ]
+    # DATA_DIRS = [
+    #     '/media/levin/DATA/checkpoints/controlnet/data/EOL/04.11.2024/',
+    # ]
     CATEGORIES = ['top', 'bottom', 'left', 'right', 'front', 'back']
     evaluator = YoloViewClassifierEvaluator(MODEL_PATH, DATA_DIRS, CATEGORIES)
     evaluator.run()
