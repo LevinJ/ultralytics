@@ -1,0 +1,36 @@
+# YOLO 11 Classification Training Configuration
+
+# Dataset paths
+
+# Paths to image lists
+dataset:
+  train: ./annotation/temp/train.txt
+  val: ./annotation/temp/val.txt
+
+# Class names
+names:
+  0: top
+  1: bottom
+  2: left
+  3: right
+  4: front
+  5: back
+
+# Split ratio for train/val will be handled in the training script
+
+# Number of classes
+nc: 6
+
+# Image size
+imgsz: 224
+
+# Batch size
+batch: 32
+
+# Number of epochs
+epochs: 50
+
+# Model architecture (update as needed for YOLO 11)
+model: yolo11x-cls.pt
+
+# Other hyperparameters can be added as needed
