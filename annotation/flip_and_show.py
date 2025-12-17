@@ -2,7 +2,7 @@ import cv2
 import matplotlib.pyplot as plt
 
 # Hardcoded image path
-img_path = '/media/levin/DATA/checkpoints/controlnet/data/EOL/04.11.2024/images/right/20241106_105711_c50980fc-952c-4454-a35c-02cdff107711.jpg'
+img_path = '/media/levin/DATA/checkpoints/controlnet/data/EOL2/18.02.2025/right/20250303_162900_7e49525e-d440-49b9-b905-d7ae864e5ee4.jpg'
 
 # Read the image
 img = cv2.imread(img_path)
