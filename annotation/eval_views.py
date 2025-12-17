@@ -60,7 +60,7 @@ class YoloViewClassifierEvaluator:
 
 
 if __name__ == '__main__':
-    MODEL_PATH = '/media/levin/DATA/checkpoints/Factory/ultralytics/runs/classify/train14/weights/best.pt'
+    MODEL_PATH = '/media/levin/DATA/checkpoints/Factory/ultralytics/runs/classify/train15/weights/best.pt'
     DATA_DIRS = [
         '/media/levin/DATA/checkpoints/controlnet/data/EOL/18.02.2025',
         '/media/levin/DATA/checkpoints/controlnet/data/EOL/20.02.2025',

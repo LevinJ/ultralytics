@@ -86,19 +86,19 @@ class Yolo11ClassifierTrainer:
             epochs=self.epochs,
             imgsz=self.imgsz,
             batch=self.batch,
-            fliplr=0.0
+            # fliplr=0.0
             #  project=os.path.abspath(os.path.join(os.path.dirname(__file__), '../runs'))
         )
         print("Training complete.")
         # Evaluate the trained model on the test set
         print("Evaluating on test set...")
-        test_results = model.val(data=self.split_dirs['test'])
+        test_results = model.val(split='test')
         print("Evaluation complete.")
         print(test_results)
 
 
 if __name__ == '__main__':
-    data_dir = '/media/levin/DATA/checkpoints/controlnet/data/EOL/18.02.2025'
+    data_dir = '/media/levin/DATA/checkpoints/controlnet/data/EOL2/18.02.2025'
     config_path = '/media/levin/DATA/checkpoints/Factory/ultralytics/annotation/yolo11_cls_config.yaml'
     class_names = ['top', 'bottom', 'left', 'right', 'front', 'back']
     trainer = Yolo11ClassifierTrainer(data_dir=data_dir, config_path=config_path, class_names=class_names)

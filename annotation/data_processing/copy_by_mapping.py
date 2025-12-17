@@ -56,7 +56,8 @@ class CategoryMappingCopier:
 
 if __name__ == '__main__':
     DATA_DIRS = [
-        '/media/levin/DATA/checkpoints/controlnet/data/EOL/18.02.2025',
+        '/media/levin/DATA/checkpoints/controlnet/data/EOL/20.02.2025',
+        '/media/levin/DATA/checkpoints/controlnet/data/EOL/21.02.2025',
     ]
     copier = CategoryMappingCopier(DATA_DIRS)
     copier.run()
