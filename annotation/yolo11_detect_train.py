@@ -36,11 +36,24 @@ class_id_to_name = {
     }
 
 class YoloDetectionDataPreparer:
-    def __init__(self, data_dirs: List[str], views: List[str], temp_dir: str, split_ratio=(0.8, 0.1, 0.1)):
+    def prepare_if_needed(self, class_id_to_name: Dict[int, str]):
+        """
+        Checks if data is already prepared in temp_dir. If not, performs data preparation and returns yaml_path.
+        Returns:
+            yaml_path (Path): Path to the generated or existing data.yaml
+        """
+        if self.temp_dir.exists() and any(self.temp_dir.iterdir()):
+            return self.temp_dir / 'data.yaml'
+        self.collect_image_label_pairs()
+        self.split_data()
+        self.organize_for_yolo()
+        return self.create_yaml(class_id_to_name)
+    def __init__(self, data_dirs: List[str], views: List[str], temp_dir: str, split_ratio=(0.8, 0.1, 0.1), split_mode: str = 'default'):
         self.data_dirs = data_dirs
         self.views = views
         self.temp_dir = Path(temp_dir)
         self.split_ratio = split_ratio
+        self.split_mode = split_mode  # 'default' or 'test_only'
         self.image_label_pairs = []
         self.splits = {'train': [], 'val': [], 'test': []}
 
@@ -60,13 +73,19 @@ class YoloDetectionDataPreparer:
                         self.image_label_pairs.append((img_file, label_file))
 
     def split_data(self):
-        random.shuffle(self.image_label_pairs)
-        n = len(self.image_label_pairs)
-        n_train = int(n * self.split_ratio[0])
-        n_val = int(n * self.split_ratio[1])
-        self.splits['train'] = self.image_label_pairs[:n_train]
-        self.splits['val'] = self.image_label_pairs[n_train:n_train + n_val]
-        self.splits['test'] = self.image_label_pairs[n_train + n_val:]
+        if self.split_mode == 'test_only':
+            self.splits['train'] = []
+            self.splits['val'] = []
+            self.splits['test'] = self.image_label_pairs.copy()
+        else:
+            random.shuffle(self.image_label_pairs)
+            n = len(self.image_label_pairs)
+            n_train = int(n * self.split_ratio[0])
+            n_val = int(n * self.split_ratio[1])
+            self.splits['train'] = self.image_label_pairs[:n_train]
+            self.splits['val'] = self.image_label_pairs[n_train:n_train + n_val]
+            self.splits['test'] = self.image_label_pairs[n_train + n_val:]
+    
 
     def organize_for_yolo(self):
         for split in ['train', 'val', 'test']:
@@ -118,20 +137,8 @@ def main():
     views = ['top', 'bottom', 'left', 'right', 'front', 'back']
     temp_dir = Path(__file__).parent / 'temp/detect'
     
-    # Check if data preparation is needed
-    images_train_dir = temp_dir / 'images' / 'train'
-    labels_train_dir = temp_dir / 'labels' / 'train'
-    data_ready = images_train_dir.exists() and labels_train_dir.exists() \
-        and any(images_train_dir.iterdir()) and any(labels_train_dir.iterdir())
-
-    if not data_ready:
-        preparer = YoloDetectionDataPreparer(data_dirs, views, temp_dir)
-        preparer.collect_image_label_pairs()
-        preparer.split_data()
-        preparer.organize_for_yolo()
-        yaml_path = preparer.create_yaml(class_id_to_name)
-    else:
-        yaml_path = temp_dir / 'data.yaml'
+    preparer = YoloDetectionDataPreparer(data_dirs, views, temp_dir)
+    yaml_path = preparer.prepare_if_needed(class_id_to_name)
 
     trainer = YoloDetectionTrainer(str(yaml_path), model='yolov8n.pt', epochs=100, imgsz=640, batch=128)
     trainer.train()
