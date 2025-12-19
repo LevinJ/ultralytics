@@ -15,15 +15,15 @@ class YoloDetectionValidator:
     def validate(self):
         yolo = YOLO(self.model_path)
         results = yolo.val(data=self.data_yaml, imgsz=self.imgsz, batch=self.batch, split='test')
-        print(results)
+        # print(results)
         return results
 
 def main():
     # Path to the new data directory to validate on
-    data_dir = '/media/levin/DATA/checkpoints/controlnet/data/EOL2/20.02.2025'
+    data_dir = '/media/levin/DATA/checkpoints/controlnet/data/EOL2/18.02.2025'
     views = ['top', 'bottom', 'left', 'right', 'front', 'back']
     temp_dir = Path(__file__).parent / 'temp/validate'
-    model_path = '/media/levin/DATA/checkpoints/Factory/ultralytics/runs/detect/train3/weights/best.pt'
+    model_path = '/media/levin/DATA/checkpoints/Factory/ultralytics/runs/detect/train2/weights/best.pt'
 
     preparer = YoloDetectionDataPreparer([data_dir], views, temp_dir, split_mode='test_only')
     yaml_path = preparer.prepare_if_needed(class_id_to_name)

@@ -124,7 +124,7 @@ class YoloDetectionTrainer:
         results = yolo.train(data=self.data_yaml, epochs=self.epochs, imgsz=self.imgsz, batch=self.batch)
         print("Evaluating on test set...")
         results = yolo.val(split='test')
-        print(results)
+        # print(results)
         return 
 
     
@@ -132,15 +132,16 @@ class YoloDetectionTrainer:
 def main():
     data_dirs = [
         '/media/levin/DATA/checkpoints/controlnet/data/EOL2/21.02.2025',
+        '/media/levin/DATA/checkpoints/controlnet/data/EOL2/20.02.2025',
         # Add more directories as needed
     ]
     views = ['top', 'bottom', 'left', 'right', 'front', 'back']
     temp_dir = Path(__file__).parent / 'temp/detect'
-    
-    preparer = YoloDetectionDataPreparer(data_dirs, views, temp_dir)
+
+    preparer = YoloDetectionDataPreparer(data_dirs, views, temp_dir, split_ratio=(0.8, 0.15, 0.05))
     yaml_path = preparer.prepare_if_needed(class_id_to_name)
 
-    trainer = YoloDetectionTrainer(str(yaml_path), model='yolov8n.pt', epochs=100, imgsz=640, batch=128)
+    trainer = YoloDetectionTrainer(str(yaml_path), model='yolo11n.pt', epochs=30, imgsz=640, batch=128)
     trainer.train()
     return
 
