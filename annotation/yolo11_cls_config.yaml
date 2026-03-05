@@ -32,5 +32,4 @@ epochs: 50
 
 # Model architecture (update as needed for YOLO 11)
 model: yolo11x-cls.pt
-
 # Other hyperparameters can be added as needed
