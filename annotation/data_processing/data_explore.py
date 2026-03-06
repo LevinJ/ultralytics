@@ -1,13 +1,10 @@
-import re
-import cv2
-import os
 import glob
-from pathlib import Path
-import numpy as np
+import os
 import tkinter as tk
-from tkinter import ttk
-from tkinter import messagebox
-from tkinter import Entry
+from pathlib import Path
+from tkinter import Entry, messagebox, ttk
+
+import cv2
 from PIL import Image, ImageTk
 
 # Classes
@@ -34,49 +31,50 @@ class_id_to_name = {
     19: "Exhaust_screw_ok",
     20: "Exhaust_screw_abnormal",
     21: "Support_surface_ok",
-    22: "Support_surface_scratch"
+    22: "Support_surface_scratch",
 }
 
 
 class AnnotationVisualizerGUI:
-
     def _draw_bbox_with_label(self, image, x1, y1, x2, y2, color, label):
         label_size = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 2)[0]
         cv2.rectangle(image, (x1, y1), (x2, y2), color, 2)
         cv2.rectangle(image, (x1, y1 - label_size[1] - 10), (x1 + label_size[0], y1), color, -1)
         cv2.putText(image, label, (x1, y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
         return image
+
     DISPLAY_W = 1280
     DISPLAY_H = 960
+
     def __init__(self, images_dir, labels_dir, select_class=None):
         self.images_dir = images_dir
         self.labels_dir = labels_dir
         self.select_class = select_class
-        self.image_extensions = ['*.jpg', '*.jpeg', '*.png', '*.bmp']
+        self.image_extensions = ["*.jpg", "*.jpeg", "*.png", "*.bmp"]
         self.class_colors = [
-            (255, 0, 0),      # Red
-            (0, 255, 0),      # Green
-            (0, 0, 255),      # Blue
-            (255, 255, 0),   # Yellow
-            (255, 0, 255),   # Magenta
-            (0, 255, 255),   # Cyan
-            (128, 0, 0),     # Maroon
-            (0, 128, 0),     # Dark Green
-            (0, 0, 128),     # Navy
-            (128, 128, 0),   # Olive
-            (128, 0, 128),   # Purple
-            (0, 128, 128),   # Teal
-            (192, 192, 192), # Silver
-            (128, 128, 128), # Gray
-            (0, 0, 0),       # Black
-            (255, 165, 0),   # Orange
-            (255, 192, 203), # Pink
+            (255, 0, 0),  # Red
+            (0, 255, 0),  # Green
+            (0, 0, 255),  # Blue
+            (255, 255, 0),  # Yellow
+            (255, 0, 255),  # Magenta
+            (0, 255, 255),  # Cyan
+            (128, 0, 0),  # Maroon
+            (0, 128, 0),  # Dark Green
+            (0, 0, 128),  # Navy
+            (128, 128, 0),  # Olive
+            (128, 0, 128),  # Purple
+            (0, 128, 128),  # Teal
+            (192, 192, 192),  # Silver
+            (128, 128, 128),  # Gray
+            (0, 0, 0),  # Black
+            (255, 165, 0),  # Orange
+            (255, 192, 203),  # Pink
             (210, 105, 30),  # Chocolate
             (154, 205, 50),  # Yellow Green
-            (0, 191, 255),   # Deep Sky Blue
-            (139, 69, 19),   # Saddle Brown
-            (255, 215, 0),   # Gold
-            (75, 0, 130),    # Indigo
+            (0, 191, 255),  # Deep Sky Blue
+            (139, 69, 19),  # Saddle Brown
+            (255, 215, 0),  # Gold
+            (75, 0, 130),  # Indigo
         ]
         self.image_files = self._get_image_files()
         self.total_images = len(self.image_files)
@@ -88,10 +86,15 @@ class AnnotationVisualizerGUI:
         # Pre-load YOLO model for responsiveness
         try:
             from ultralytics import YOLO
-            self.yolo_model = YOLO("/media/levin/DATA/checkpoints/Factory/ultralytics/runs/detect/train3/weights/best.pt")
+
+            self.yolo_model = YOLO(
+                "/media/levin/DATA/checkpoints/Factory/ultralytics/runs/detect/train3/weights/best.pt"
+            )
         except ImportError:
             self.yolo_model = None
-            print("[Warning] ultralytics package is required for YOLO inference. Please install it via 'pip install ultralytics'.")
+            print(
+                "[Warning] ultralytics package is required for YOLO inference. Please install it via 'pip install ultralytics'."
+            )
 
     def _get_image_files(self):
         image_files = []
@@ -115,7 +118,7 @@ class AnnotationVisualizerGUI:
         self.annotations = []
         self.bbox_pixel_coords = []
         assert os.path.exists(label_path), f"Label file does not exist: {label_path}"
-        with open(label_path, 'r') as f:
+        with open(label_path) as f:
             lines = f.readlines()
         has_selected_class = False
         for line in lines:
@@ -142,26 +145,25 @@ class AnnotationVisualizerGUI:
             cv2.rectangle(image, (x1, y1), (x2, y2), color, 2)
             label = f"{class_id_to_name[int(class_id)]}"
             label_size = cv2.getTextSize(label, cv2.FONT_HERSHEY_SIMPLEX, 0.5, 2)[0]
-            cv2.rectangle(image, (x1, y1 - label_size[1] - 10),
-                            (x1 + label_size[0], y1), color, -1)
-            cv2.putText(image, label, (x1, y1 - 5),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+            cv2.rectangle(image, (x1, y1 - label_size[1] - 10), (x1 + label_size[0], y1), color, -1)
+            cv2.putText(image, label, (x1, y1 - 5), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
         if not has_selected_class:
             return None
         return image
 
     def _annotate_image_yolo(self, image_path):
-        import torch
         import cv2
-        import numpy as np
+
         if self.yolo_model is None:
-            raise ImportError("ultralytics package is required for YOLO inference. Please install it via 'pip install ultralytics'.")
+            raise ImportError(
+                "ultralytics package is required for YOLO inference. Please install it via 'pip install ultralytics'."
+            )
         image = cv2.imread(image_path)
         assert image is not None, f"Failed to read image: {image_path}"
         img_height, img_width = image.shape[:2]
         results = self.yolo_model(image)
         boxes = results[0].boxes
-        names = results[0].names if hasattr(results[0], 'names') else self.yolo_model.names
+        names = results[0].names if hasattr(results[0], "names") else self.yolo_model.names
         gt_boxes, gt_classes = None, None
         if self.filter_yolo:
             gt_boxes, gt_classes = self._load_label_boxes(image_path, img_width, img_height)
@@ -192,14 +194,18 @@ class AnnotationVisualizerGUI:
                         reason = f"IOU < 0.5 (IOU={best_iou:.3f}) with GT class {gt_class}"
                     elif class_id != gt_class:
                         draw = True
-                        reason = f"Class mismatch: pred={class_id} ({names[class_id]}), gt={gt_class}  ({names[gt_class]})"
+                        reason = (
+                            f"Class mismatch: pred={class_id} ({names[class_id]}), gt={gt_class}  ({names[gt_class]})"
+                        )
                 else:
                     draw = True  # No GT box, always draw
                     reason = "No GT box found"
                 if draw:
                     if self.select_class is None or int(class_id) in self.select_class:
                         has_selected_class = True
-                    print(f"[YOLO-Filter] Draw box: pred=({x1},{y1},{x2},{y2}), class={class_id} ({names[class_id]}), conf={conf:.2f}, reason: {reason}")
+                    print(
+                        f"[YOLO-Filter] Draw box: pred=({x1},{y1},{x2},{y2}), class={class_id} ({names[class_id]}), conf={conf:.2f}, reason: {reason}"
+                    )
             if draw:
                 self._draw_bbox_with_label(image, x1, y1, x2, y2, color, label)
         if self.filter_yolo and not has_selected_class:
@@ -212,7 +218,7 @@ class AnnotationVisualizerGUI:
         classes = []
         if not os.path.exists(label_path):
             return boxes, classes
-        with open(label_path, 'r') as f:
+        with open(label_path) as f:
             lines = f.readlines()
         for line in lines:
             line = line.strip()
@@ -247,7 +253,6 @@ class AnnotationVisualizerGUI:
         img = self._annotate_image(self.image_files[idx])
         return img
 
-
     def run(self):
         self.root = tk.Tk()
         self.root.title("Annotation Visualizer")
@@ -258,15 +263,21 @@ class AnnotationVisualizerGUI:
         self.info_label = ttk.Label(self.root, text="", font=("Arial", 10))
         self.info_label.pack(pady=2)
 
-
         # Checkbox for YOLO/Label mode and filter, and class selection widgets on the same row
         self.yolo_var = tk.BooleanVar(value=False)
         self.filter_yolo_var = tk.BooleanVar(value=False)
         checkbox_frame = ttk.Frame(self.root)
         checkbox_frame.pack(pady=5)
-        yolo_checkbox = ttk.Checkbutton(checkbox_frame, text="YOLO Prediction Mode", variable=self.yolo_var, command=self._on_yolo_checkbox)
+        yolo_checkbox = ttk.Checkbutton(
+            checkbox_frame, text="YOLO Prediction Mode", variable=self.yolo_var, command=self._on_yolo_checkbox
+        )
         yolo_checkbox.pack(side=tk.LEFT, padx=5)
-        filter_checkbox = ttk.Checkbutton(checkbox_frame, text="Show Only Wrong/Low-IOU Predictions", variable=self.filter_yolo_var, command=self._on_filter_checkbox)
+        filter_checkbox = ttk.Checkbutton(
+            checkbox_frame,
+            text="Show Only Wrong/Low-IOU Predictions",
+            variable=self.filter_yolo_var,
+            command=self._on_filter_checkbox,
+        )
         filter_checkbox.pack(side=tk.LEFT, padx=5)
         # Class selection widgets to the right of filter_checkbox
         class_label = ttk.Label(checkbox_frame, text="Select class (comma-separated):")
@@ -275,12 +286,12 @@ class AnnotationVisualizerGUI:
         self.class_entry.pack(side=tk.LEFT, padx=2)
         # Set initial value
         if self.select_class is not None:
-            self.class_entry.insert(0, ','.join(str(c) for c in self.select_class))
+            self.class_entry.insert(0, ",".join(str(c) for c in self.select_class))
         else:
             self.class_entry.insert(0, "")
         class_btn = ttk.Button(checkbox_frame, text="Apply", command=self._on_class_entry)
         class_btn.pack(side=tk.LEFT, padx=2)
-        self.class_entry.bind('<Return>', lambda event: self._on_class_entry())
+        self.class_entry.bind("<Return>", lambda event: self._on_class_entry())
 
         btn_frame = ttk.Frame(self.root)
         btn_frame.pack(pady=5)
@@ -294,11 +305,11 @@ class AnnotationVisualizerGUI:
         self.skip_entry.grid(row=0, column=3, padx=5)
         skip_btn = ttk.Button(btn_frame, text="Skip", command=self._skip_to_image)
         skip_btn.grid(row=0, column=4, padx=5)
-        self.skip_entry.bind('<Return>', lambda event: self._skip_to_image())
+        self.skip_entry.bind("<Return>", lambda event: self._skip_to_image())
 
-        self.image_label.bind('<Button-1>', self._on_canvas_click)
-        self.root.bind('<Up>', lambda event: self._prev_image())
-        self.root.bind('<Down>', lambda event: self._next_image())
+        self.image_label.bind("<Button-1>", self._on_canvas_click)
+        self.root.bind("<Up>", lambda event: self._prev_image())
+        self.root.bind("<Down>", lambda event: self._next_image())
         self._show_image()
         self.root.mainloop()
 
@@ -308,12 +319,11 @@ class AnnotationVisualizerGUI:
             self.select_class = None
         else:
             try:
-                self.select_class = [int(x) for x in val.split(',') if x.strip() != ""]
+                self.select_class = [int(x) for x in val.split(",") if x.strip() != ""]
             except Exception:
                 messagebox.showerror("Error", "Invalid class list. Please enter comma-separated integers.")
                 return
         self._show_image()
-
 
     def _on_filter_checkbox(self):
         self.filter_yolo = self.filter_yolo_var.get()
@@ -345,13 +355,14 @@ class AnnotationVisualizerGUI:
         self._hide_annotation_edit_box()
         # If click is not in any bbox, show original image in matplotlib window
         import matplotlib.pyplot as plt
+
         img_path = self.image_files[self.current_index]
         orig_img = cv2.imread(img_path)
         if orig_img is not None:
             img_rgb = cv2.cvtColor(orig_img, cv2.COLOR_BGR2RGB)
             plt.figure("Original Image")
             plt.imshow(img_rgb)
-            plt.axis('off')
+            plt.axis("off")
             plt.show()
 
     def _show_image(self):
@@ -380,7 +391,7 @@ class AnnotationVisualizerGUI:
         self.annotation_edit_box.insert(0, ann)
         # Place the box below the image label
         self.annotation_edit_box.place(x=10, y=self.image_label.winfo_height() + 10)
-        self.annotation_edit_box.bind('<Return>', self._on_edit_enter)
+        self.annotation_edit_box.bind("<Return>", self._on_edit_enter)
         self.annotation_edit_box.focus_set()
 
     def _hide_annotation_edit_box(self):
@@ -404,9 +415,9 @@ class AnnotationVisualizerGUI:
 
     def _save_annotations_to_file(self):
         # Save updated annotations back to file
-        with open(self.annotation_file, 'w') as f:
+        with open(self.annotation_file, "w") as f:
             for ann in self.annotations:
-                f.write(ann + '\n')
+                f.write(ann + "\n")
 
     def _prev_image(self):
         if self.current_index > 0:
@@ -437,13 +448,13 @@ if __name__ == "__main__":
     # batch_folder = f"./data"
     # batch_date = "21.02.2025"
 
-    batch_folder = f"/media/levin/DATA/checkpoints/controlnet/data/EOL2"
+    batch_folder = "/media/levin/DATA/checkpoints/controlnet/data/EOL2"
     # batch_date = "21.02.2025"
     # batch_date = "20.02.2025"
     batch_date = "21.02.2025"
-    
+
     images_directory = f"{batch_folder}/{batch_date}/{view_angle}"  # Replace with your image directory
     labels_directory = f"{batch_folder}/{batch_date}/label/{batch_date}-txt/{view_angle}"  # Replace with your annotation file directory
-    select_class =   [10, 11]
+    select_class = [10, 11]
     visualizer_gui = AnnotationVisualizerGUI(images_directory, labels_directory, select_class)
     visualizer_gui.run()
